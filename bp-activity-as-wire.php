@@ -80,12 +80,12 @@ function devb_aawire_post_update() {
         //let us get the last activity id, we will use it to reset user's last activity
         $last_update = bp_get_user_meta( bp_loggedin_user_id(), 'bp_latest_update', true );
         if( $is_wire_post )
-            add_filter ( 'bp_activity_new_update_action', 'devb_aarire_filter_action' );
+            add_filter ( 'bp_activity_new_update_action', 'devb_aawire_filter_action' );
         
         $activity_id = bp_activity_post_update( array( 'content' => $content ) );
         
         if( $is_wire_post ) {
-            remove_filter ( 'bp_activity_new_update_action', 'devb_aarire_filter_action');
+            remove_filter ( 'bp_activity_new_update_action', 'devb_aawire_filter_action' );
 
             //add activity meta to remember that it was a wire post and we may use it in future
             
@@ -126,7 +126,7 @@ function devb_aawire_post_update() {
  exit(0);
 }
 //filters activity action to say posted on xyz's wall
-function devb_aarire_filter_action( $action ){
+function devb_aawire_filter_action( $action ){
     $action = sprintf( __( '%s posted on %s\'s wall', 'buddypress' ), bp_core_get_userlink( get_current_user_id() ), bp_core_get_userlink( bp_displayed_user_id() ) );
     return $action;
 }
