@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BuddyPress Activity as Wire
  * Plugin URI: http://buddydev.com/plugins/bp-activity-as-wire/
- * Version: 1.0
+ * Version: 1.0.1
  * Author: Brajesh Singh ( BuddyDev )
  * Author URI: http://buddydev.com
  * License: GPL
@@ -46,7 +46,7 @@ function devb_aawire_update_activity_posting_hooks() {
     add_action( 'wp_ajax_post_update', 'devb_aawire_post_update' );
 }
  
-add_action( 'init', 'devb_aawire_update_activity_posting_hooks' );
+add_action( 'bp_init', 'devb_aawire_update_activity_posting_hooks' );
  
 /* AJAX update posting */
  
@@ -91,6 +91,8 @@ function devb_aawire_post_update() {
             
          if( $activity_id )
              bp_activity_update_meta ($activity_id, 'is_wire_post', 1 );//let us remember it for future
+             //for 2.0 Let us add the mentioned user in the meta, so in future if we plan eo extend the wall beyond mention, we can do that easily
+                 bp_activity_update_meta ( $activity_id, 'wire_user_id', bp_displayed_user_id() );//let us remember it for future
          
         }   
          //reset the last update
@@ -130,3 +132,39 @@ function devb_aawire_filter_action( $action ){
     $action = sprintf( __( '%s posted on %s\'s wall', 'buddypress' ), bp_core_get_userlink( get_current_user_id() ), bp_core_get_userlink( bp_displayed_user_id() ) );
     return $action;
 }
+
+//for BuddyPress 2.0 dynamic action astring, we need to filter the update action and see if it is a wire/wall post
+
+ add_filter( 'bp_activity_new_update_action',  'devb_aawire_update_activity_action', 10, 2 );
+ 
+ function devb_aawire_update_activity_action( $action, $activity ){
+     //check if this is a wall post?
+     if( !bp_activity_get_meta( $activity->id, 'is_wire_post', true ) )
+          return $action;
+     
+     //if we are here, It must be a wire post
+     //since bp 2.0, I have added a meta key to store the user id on whose wall we are posting
+     
+     if( !$user_id = bp_activity_get_meta( $activity->id, 'wire_user_id', true) ){
+          //before 2.0, since the id did not exist, we will be using the @mention finding username
+         $usernames =  bp_activity_find_mentions ( $activity->content );
+         
+         if( is_array( $usernames ) )
+             $usernames = array_pop ( $usernames );
+         
+         if( $usernames )
+             $user_id = bp_core_get_userid ( $usernames );
+         
+     }
+     
+     if( !$user_id ) //we don't have info about the person on whose wall this poat was made
+         return $action;
+     
+     //if we are here, let us say something nice really nice
+      $action = sprintf( __( '%s posted on %s\'s wall', 'buddypress' ), bp_core_get_userlink( $activity->user_id ), bp_core_get_userlink( $user_id ) );
+    
+    
+     
+     return $action;
+     
+ }
