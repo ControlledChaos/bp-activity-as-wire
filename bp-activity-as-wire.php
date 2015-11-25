@@ -28,8 +28,7 @@ class BP_Activity_Wire_Helper {
 	}
 
 	private function setup() {
-		//reset the functions handling activity update
-		add_action( 'bp_init', array( $this, 'reset_update_handler' ) );
+		
 		//show post form
 		add_action( 'bp_after_member_activity_post_form', array( $this, 'show_post_form' ) );
 
